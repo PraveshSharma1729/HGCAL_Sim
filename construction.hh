@@ -11,6 +11,15 @@
 #include "detector.hh"
 #include "G4Polyhedra.hh"
 
+#include "G4VisAttributes.hh"
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include "G4ThreeVector.hh" 
+#include "G4RotationMatrix.hh"
+
 class MyDetectorConstruction : public G4VUserDetectorConstruction
 {
 public:

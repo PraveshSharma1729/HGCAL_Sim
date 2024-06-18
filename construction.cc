@@ -9,94 +9,217 @@ MyDetectorConstruction::~MyDetectorConstruction()
 G4VPhysicalVolume *MyDetectorConstruction::Construct()
 {
 G4NistManager *nist = G4NistManager::Instance();
-/*
-G4Material *SiO2 =new G4Material("SiO2",2.201*g/cm3,2);
-SiO2->AddElement(nist->FindOrBuildElement("Si"),1);
-SiO2->AddElement(nist->FindOrBuildElement("O"),2);
 
-G4Material *H2O =new G4Material("H2O",1.000*g/cm3,2);
-H2O->AddElement(nist->FindOrBuildElement("H"),2);
-H2O->AddElement(nist->FindOrBuildElement("O"),1);
-
-G4Element *C =nist->FindOrBuildElement("C");
-*/
 
 
 G4Material *Silicon= nist->FindOrBuildMaterial("G4_Si");
+G4Material *KaptonMat= nist->FindOrBuildMaterial("G4_KAPTON");
+G4Material *CopperMat= nist->FindOrBuildMaterial("G4_Cu");
+G4Material *TungstenMat= nist->FindOrBuildMaterial("G4_W");
 
-//G4Material *Aerogel =new G4Material("Aerogel", 0.200*g/cm3, 3);
+
+G4Material *BaseplateMat =new G4Material("BaseplateMat", 16.715*g/cm3, 2);
+BaseplateMat->AddMaterial(TungstenMat,75*perCent);
+BaseplateMat->AddMaterial(CopperMat,25*perCent);
 
 
+//Epoxy (for FR4 )
+ //from http://www.physi.uni-heidelberg.de/~adler/TRD/TRDunterlagen/RadiatonLength/tgc2.htm //???
+
+ G4Material* Epoxy = new G4Material("Epoxy" ,1.2*g/cm3 , 2);
+ Epoxy->AddElement(nist->FindOrBuildElement("H"),2);
+ Epoxy->AddElement(nist->FindOrBuildElement("C"),2);
+ //SiO2 (Quarz)
+ G4Material* SiO2 = new G4Material("SiO2",2.200*g/cm3, 2);
+ SiO2->AddElement(nist->FindOrBuildElement("Si"), 1);
+ SiO2->AddElement(nist->FindOrBuildElement("O") , 2);
+ //FR4 (Glass + Epoxy)
+
+ G4Material* FR4 = new G4Material("FR4" , 1.86*g/cm3, 2);
+ FR4->AddMaterial(Epoxy, 0.472);
+ FR4->AddMaterial(SiO2, 0.528);
+ //fr4Material = FR4;
 
 
-/*Aerogel->AddMaterial(SiO2,62.5*perCent);
-Aerogel->AddMaterial(H2O,37.4*perCent);
-Aerogel->AddElement(C,0.1*perCent);*/
+std::string filename = "channel_positions.txt"; 
+std::vector<G4ThreeVector> vectors1;
+std::vector<G4ThreeVector> vectors2;
+std::ifstream infile(filename);
+std::string line;
 
-/*G4double energy[2] ={1.239841939*eV/0.9, 1.239841939*eV/0.2};
-G4double rindexAerogel[2]={1.1,1.1};
-G4double rindexWorld[2]={1.0,1.0};
+    
+while (std::getline(infile, line)) {
+        std::istringstream iss(line);
+        double x, y, z;
+         if (!(iss >> x >> y >> z)) {
+            std::cerr << "Error: Incorrect file format in line: " << line << std::endl;
+            continue;
+        }
+        vectors1.emplace_back((x)*cm, (y+0.20)*cm, (z-5)*cm);
+        vectors2.emplace_back((x-0.25)*cm, (y-0.06)*cm, (z+5)*cm);
+        }
 
-G4MaterialPropertiesTable *mptAerogel=new G4MaterialPropertiesTable();
-mptAerogel->AddProperty("RINDEX",energy,rindexAerogel,2);
-
-Aerogel->SetMaterialPropertiesTable(mptAerogel);*/
+    infile.close();
+    
+std::cout<<vectors1[2]<<vectors1[0]<<std::endl;
 
 G4Material *worldMat =nist->FindOrBuildMaterial("G4_Galactic");
 
-/*
-G4MaterialPropertiesTable *mptWorld=new G4MaterialPropertiesTable();
-mptWorld->AddProperty("RINDEX",energy,rindexWorld, 2);
-worldMat->SetMaterialPropertiesTable(mptWorld);
-*/
-G4Box *solidWorld = new G4Box("solidWorld",0.2*m,0.2*m,0.2*m);
+G4Box *solidWorld = new G4Box("solidWorld",20.0*m,20.0*m,20.0*m);
 
 G4LogicalVolume *logicWorld = new G4LogicalVolume( solidWorld, worldMat, "logicWorld");
 
 G4VPhysicalVolume *physWorld = new G4PVPlacement(0, G4ThreeVector(0.,0.,0.), logicWorld, "physWorld", 0, false, 0, true);
 
-/*G4Box *solidRadiator = new G4Box("solidRadiator",0.4*m,0.4*m,0.01*m);
 
-G4LogicalVolume *logicRadiator =new G4LogicalVolume(solidRadiator,Aerogel,"logicalRadiator");
-
-G4VPhysicalVolume *physRadiator =new G4PVPlacement(0,G4ThreeVector(0.,0.,0.25*m),logicRadiator, "physRadiator",logicWorld, false, 0, true);*/
-
-
-
- // Create hexagonal solid
+ // Defining Logic volume for Silicon sensors
  
-  G4double zPlane[] = { 0*um, 300*um }; // Z planes
+    G4double zPlane[] = { 0*um, 300*um }; // Z planes
     G4double rInner[] = { 0*cm, 0*cm };  // Inner radius
-    G4double rOuter[] = { 5.08*cm, 5.08*cm };  // Outer radius
-    
-     // Create hexagonal solid
+    G4double rOuter[] = { 3.9*mm, 3.9*mm };  // Outer radius
+ 
     G4Polyhedra* solidDetector = new G4Polyhedra("solidDetector", 0.*deg, 360.*deg, 6, 2, zPlane, rInner, rOuter);
+    G4RotationMatrix* rotation = new G4RotationMatrix();
+    rotation->rotateZ(30.0 * CLHEP::degree);
 
-   
-    
-    //G4Polyhedra* solidDetector = new G4Polyhedra("solidDetector", 0.*deg, 360.*deg, 6, 2, 0.4*m, 0*m,0.1*m );
-
-     logicDetector = new G4LogicalVolume(solidDetector, Silicon, "logicDetector");
-    
+    logicDetector = new G4LogicalVolume(solidDetector, Silicon, "logicDetector");
     fScoringVolume = logicDetector;
-/*G4Box *solidDetector =new G4Box("solidDetector",0.4*m,0.4*m,0.01*m);
-logicDetector = new G4LogicalVolume(solidDetector ,Silicon,"logicDetector");*/
-
-G4VPhysicalVolume *physDetector = new G4PVPlacement(0,G4ThreeVector(0.,0.,5.0*cm),logicDetector,"physDetector",logicWorld,false,0, true);
 
 
-/*for (G4int i=0;i<100;i++){
-	for(G4int j=0;j<100;j++){
+
+
+
+
+// Defining Logic Volume for PCB
+    G4double zPlanePCB[] = { 0*um, 1.6*mm }; // Z planes
+    G4double rInnerPCB[] = { 0*cm, 0*cm };  // Inner radius
+    G4double rOuterPCB[] = { 55*mm, 55*mm };  // Outer radius
+ 
+    G4Polyhedra* PCB = new G4Polyhedra("PCB", 0.*deg, 360.*deg, 6, 2, zPlanePCB, rInnerPCB, rOuterPCB);
+
+    G4LogicalVolume *logicPCB = new G4LogicalVolume(PCB, FR4, "logicPCB");
+
+
+	// Create and configure visualization attributes
+	G4VisAttributes* pcbVisAttr = new G4VisAttributes(G4Colour(0.0, 1.0, 0.0)); // Green color
+	pcbVisAttr->SetVisibility(true); // Ensure the volume is visible
+	pcbVisAttr->SetForceSolid(true); // Render the volume as a solid object
+
+	// Assign the visualization attributes to the logical volume
+	logicPCB->SetVisAttributes(pcbVisAttr);
+
+
+
+
+
+// Defining Logic Volume for Kapton
+    G4double zPlaneKapton[] = { 0*um, 300*um }; // Z planes
+    G4double rInnerKapton[] = { 0*cm, 0*cm };  // Inner radius
+    G4double rOuterKapton[] = { 55.0*mm, 55.0*mm };  // Outer radius
+ 
+    G4Polyhedra* Kapton = new G4Polyhedra("Kapton", 0.*deg, 360.*deg, 6, 2, zPlaneKapton, rInnerKapton, rOuterKapton);
+
+    G4LogicalVolume *logicKapton = new G4LogicalVolume(Kapton, KaptonMat, "logicKapton");
+    
+    
+    	// Create and configure visualization attributes
+	G4VisAttributes* kaptonVisAttr = new G4VisAttributes(G4Colour(1.0, 1.0, 0.0)); // Yellow color
+	kaptonVisAttr->SetVisibility(true); // Ensure the volume is visible
+	kaptonVisAttr->SetForceSolid(true); // Render the volume as a solid object
+
+	// Assign the visualization attributes to the logical volume
+	logicKapton->SetVisAttributes(kaptonVisAttr);
+
+
+
+
+
+// Defining Logic Volume for Baesplate
+    G4double zPlaneBaseplate[] = { 0*um, 2*mm }; // Z planes
+    G4double rInnerBaseplate[] = { 0*cm, 0*cm };  // Inner radius
+    G4double rOuterBaseplate[] = { 55.0*mm, 55.0*mm };  // Outer radius
+ 
+    G4Polyhedra* Baseplate = new G4Polyhedra("Baseplate", 0.*deg, 360.*deg, 6, 2, zPlaneBaseplate, rInnerBaseplate, rOuterBaseplate);
+
+    G4LogicalVolume *logicBaseplate = new G4LogicalVolume(Baseplate, BaseplateMat, "logicBaseplate");
+    
+    
+    
+    // Create and configure visualization attributes
+	G4VisAttributes* baseVisAttr = new G4VisAttributes(G4Colour(0.6, 0.0, 0.0)); // Dark Yellow color
+	baseVisAttr->SetVisibility(true); // Ensure the volume is visible
+	baseVisAttr->SetForceSolid(true); // Render the volume as a solid object
+    
+    // Assign the visualization attributes to the logical volume
+	logicBaseplate->SetVisAttributes(baseVisAttr);
+    
+    
+    
+    
+    
+    
+    
+    
+    // Defining Logic Volume for Copper Plate
+    G4double zPlaneCopper[] = { 0*um, 6*mm }; // Z planes
+    G4double rInnerCopper[] = { 0*cm, 0*cm };  // Inner radius
+    G4double rOuterCopper[] = { 55.0*mm, 55.0*mm };  // Outer radius
+ 
+    G4Polyhedra* Copper_Plate = new G4Polyhedra("Copper_Plate", 0.*deg, 360.*deg, 6, 2, zPlaneCopper, rInnerCopper, rOuterCopper);
+
+    G4LogicalVolume *logicCopper = new G4LogicalVolume(Copper_Plate, CopperMat, "logicCopper");
+    
+    
+    
+    // Create and configure visualization attributes
+	G4VisAttributes* copperVisAttr = new G4VisAttributes(G4Colour(1.0, 0.5, 0.0)); // orange color
+	copperVisAttr->SetVisibility(true); // Ensure the volume is visible
+	copperVisAttr->SetForceSolid(true); // Render the volume as a solid object
+
+	// Assign the visualization attributes to the logical volume
+	logicCopper->SetVisAttributes(copperVisAttr);
+    
+    
+    
+    
+    
+    
+    
+     // Defining Logic Volume for Absorbers
+    G4double zPlaneAbsorber[] = { 0*um, 2*0.350*cm }; // Z planes
+    G4double rInnerAbsorber[] = { 0*cm, 0*cm };  // Inner radius
+    G4double rOuterAbsorber[] = { 55.0*mm, 55.0*mm };  // Outer radius
+ 
+    G4Polyhedra* Absorber_Plate = new G4Polyhedra("Absorber_Plate", 0.*deg, 360.*deg, 6, 2, zPlaneAbsorber, rInnerAbsorber, rOuterAbsorber);
+
+    G4LogicalVolume *logicAbsorber = new G4LogicalVolume(Absorber_Plate, TungstenMat, "logicAbsorber");
+    
+    
+    
+    // Create and configure visualization attributes
+	G4VisAttributes* AbsorberVisAttr = new G4VisAttributes(G4Colour(0.5, 0.5, 0.5)); // grey color
+	AbsorberVisAttr->SetVisibility(true); // Ensure the volume is visible
+	AbsorberVisAttr->SetForceSolid(true); // Render the volume as a solid object
+
+	// Assign the visualization attributes to the logical volume
+	logicAbsorber->SetVisAttributes(AbsorberVisAttr);
+    
+    
+for (G4int i=1;i<28;i++){
+	G4VPhysicalVolume *physPCB = new G4PVPlacement(0,G4ThreeVector(0.0,0.0,-1.6*mm+1.72*i*cm),logicPCB,"physPCB",logicWorld,false,i*10000,true);
 	
-	G4VPhysicalVolume *physDetector = new G4PVPlacement(0,G4ThreeVector(-0.5*m+(i+0.5)*m/100,-0.5*m+(j+0.5)*m/100,0.49*m),logicDetector,"physDetector",logicWorld,false,j+i*100,true);
-	}
-}*/
+	G4VPhysicalVolume *physKapton = new G4PVPlacement(0,G4ThreeVector(0.,0.,300*um+1.72*i*cm),logicKapton,"physKapton",logicWorld,false,i*11000,true);
+	
+	G4VPhysicalVolume *physBaseplate = new G4PVPlacement(0,G4ThreeVector(0.,0.,600*um+1.72*i*cm),logicBaseplate,"physBaseplate",logicWorld,false,i*12000,true);
+		
+	G4VPhysicalVolume *physCopper = new G4PVPlacement(0,G4ThreeVector(0.,0.,2.0*mm+600*um+1.72*i*cm),logicCopper,"physCopper",logicWorld,false,i*13000,true);
 
-
-
-
-
-
+	G4VPhysicalVolume *physAbsorber = new G4PVPlacement(0,G4ThreeVector(0.,0.,8.0*mm+600*um+1.72*i*cm),logicAbsorber,"physAbsorber",logicWorld,false,i*14000,true);
+	
+	for (G4int j=0;j<192;j++){
+		G4VPhysicalVolume *physDetector = new G4PVPlacement(rotation,vectors1[j]+G4ThreeVector(0.,0.,1.72*i*cm),logicDetector,"physDetector",logicWorld,false,i*1000+j,true);
+		}
+}
 
 
 

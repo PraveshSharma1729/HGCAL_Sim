@@ -10,6 +10,7 @@
 #include "G4IonPhysics.hh"
 //#include "G4EmStandardPhysics_option4.hh"
 #include "G4OpticalPhysics.hh"
+//#include "FTFP_BERT_EMN.hh"
 
 class MyPhysicsList : public G4VModularPhysicsList
 {
