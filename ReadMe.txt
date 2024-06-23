@@ -4,8 +4,11 @@
 #create folder named build
 $mkdir build
 
+# move channel position file to build
+$mv channel.txt /build
+
 # Go inside that folder
-$cd mkdir
+$cd build
 
 #Do Cmake
 $cmake ..
