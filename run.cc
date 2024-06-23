@@ -50,6 +50,25 @@ man->CreateNtupleDColumn("Edep_l26");
 man->CreateNtupleDColumn("Edep_l27");
 
 man->FinishNtuple(1);
+
+
+
+man->CreateNtuple("Ring","Ring");
+man->CreateNtupleDColumn("Ring0");
+man->CreateNtupleDColumn("Ring1");
+man->CreateNtupleDColumn("Ring2");
+man->CreateNtupleDColumn("Ring3");
+man->CreateNtupleDColumn("Ring4");
+man->CreateNtupleDColumn("Ring5");
+man->CreateNtupleDColumn("Ring6");
+
+man->FinishNtuple(2);
+
+
+ // Create a 2D histogram
+    fHistId2D = man->CreateH2("EnergyDeposition", "Energy Deposition vs Layer Number",
+                              100, 0, 30,  // x-axis: copy number range
+                              100, 0, 100); // y-axis: energy deposition range 
 }
 
 void MyRunAction::EndOfRunAction(const G4Run*)
@@ -59,6 +78,7 @@ G4AnalysisManager *man = G4AnalysisManager::Instance();
 man->Write();
 
 man->CloseFile();
+
 
 }
 

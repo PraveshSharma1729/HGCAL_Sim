@@ -21,6 +21,9 @@ virtual void EndOfEventAction(const G4Event*);
 void AddEdep(G4double edep) {fEdep += edep;}
 //void AddEdep1100(G4double edep) { fEdep1100 += edep; }
  void AddEdep0(G4int copyNo, G4double edep);
+ 
+ 
+    G4int fHistId2D; ;//GetHistId2D() const { return }
 private:
 
 G4double fEdep;

@@ -17,6 +17,9 @@ MyRunAction();
 
 virtual void BeginOfRunAction(const G4Run*);
 virtual void EndOfRunAction(const G4Run*);
+
+private:
+    G4int fHistId2D;  // ID for the 2D histogram
 };
 
 #endif

@@ -19,12 +19,12 @@ void MyPrimaryGenerator::GeneratePrimaries(G4Event *anEvent)
 	//G4String particleName="mu-";
 	G4ParticleDefinition *particle = particleTable->FindParticle("e-");
 	
-	G4ThreeVector pos(0.,0.,-5.0*cm);
+	G4ThreeVector pos(-6.98*mm,-3.98*mm,-5.0*cm);
 	G4ThreeVector mom(0.,0.,1.);
 	
 	fParticleGun->SetParticlePosition(pos);
 	fParticleGun->SetParticleMomentumDirection(mom);
-	fParticleGun->SetParticleMomentum(50*GeV);
+	fParticleGun->SetParticleMomentum(20*GeV);
 	fParticleGun->SetParticleDefinition(particle);
 	
 	fParticleGun->GeneratePrimaryVertex(anEvent);

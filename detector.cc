@@ -30,7 +30,7 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
 	//G4cout<<"Detector position: "<<posDetector<<G4endl;
 	
 	G4int evt = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
-	if (copyNo ==1099){
+	if (copyNo ==1169){
 	G4cout << "Event: " << evt <<G4endl;}
 	G4double edep = aStep->GetTotalEnergyDeposit();
    for (G4int i=1; i < 28 ;i++){
